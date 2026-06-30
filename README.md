@@ -1,6 +1,6 @@
 # SMSEagle Alertmanager Adapter 
 
-A lightweight webhook receiver that allows sending SMS and Calls from Prometheus Alertmanager. It maps the Prometheus Alertmanager payload (schema v4) to **SMSEagle API v2** calls. 
+A lightweight webhook receiver that allows sending SMS and Calls from [Prometheus Alertmanager](https://github.com/prometheus/alertmanager). It maps the Prometheus Alertmanager payload (schema v4) to **SMSEagle API v2** calls. 
 
 ```
 Prometheus -> Alertmanager -> (webhook) -> adapter -> SMSEagle API v2 -> SMS / TTS Calls
@@ -13,7 +13,7 @@ API v2 schema. Alertmanager has no native SMS channel - the canonical pattern is
 
 
 ## Why SMSEagle
-SMSEagle is an offline hardware SMS gateway. Therefore, no external connection to 3rd party system is required. All notifications are generated on-premise and sent directly to a cellular network. This solution can be used in secure (offline) installations without Internet access. SMSEagle runs on-premises, so alerts aren’t routed through third-party cloud SMS/voice providers.
+[SMSEagle](https://www.smseagle.eu/) is an offline hardware SMS gateway. Therefore, no external connection to 3rd party system is required. All notifications are generated on-premise and sent directly to a cellular network. This solution can be used in secure (offline) installations without Internet access. SMSEagle runs on-premises, so alerts aren’t routed through third-party cloud SMS/voice providers.
 
 ## Features
 Full routing and formatting: per-severity recipients, firing/resolved messages, a single summary SMS during alert storms, and optional voice escalation for critical alerts. Best for any Prometheus/Alertmanager stack, including Kubernetes.
@@ -136,7 +136,5 @@ GitHub Actions (`.github/workflows/ci.yml`) runs `pytest` on every push/PR to
 
 ## License
 
-MIT - see [LICENSE](LICENSE). Copyright (c) 2026 PROXIMUS sp. z o.o.
+MIT - see [LICENSE](LICENSE)
 
-> Status: conceptual draft for further development / possible release as an
-> official SMSEagle integration component.
