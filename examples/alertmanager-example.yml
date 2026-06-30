@@ -1,0 +1,34 @@
+# Example alertmanager.yml fragment routing alerts to the SMSEagle adapter.
+#
+# The adapter exposes the endpoint:  POST /alert
+# Authentication: Bearer <ADAPTER_WEBHOOK_TOKEN> (matching the adapter's env)
+
+route:
+  receiver: smseagle
+  group_by: ['alertname', 'cluster']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    # Critical alerts can be sent with a shorter repeat_interval
+    - matchers:
+        - severity = "critical"
+      receiver: smseagle
+      repeat_interval: 1h
+
+receivers:
+  - name: smseagle
+    webhook_configs:
+      - url: "http://smseagle-adapter:8080/alert"
+        send_resolved: true        # also send [RESOLVED] notifications
+        max_alerts: 0              # 0 = no limit (the adapter handles summary mode)
+        http_config:
+          authorization:
+            type: Bearer
+            credentials: "REPLACE_WITH_LONG_RANDOM_SECRET"   # = ADAPTER_WEBHOOK_TOKEN
+
+# Per-recipient routing can be done two ways:
+#  1) In the adapter: SMSEAGLE_ROUTES based on the `severity` label (as above).
+#  2) On the alert side: add a `smseagle_to` label in the Prometheus rule,
+#     e.g. labels: { smseagle_to: "+48600100200,oncall-group" }
+#     - this takes priority over severity-based routing.

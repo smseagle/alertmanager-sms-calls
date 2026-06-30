@@ -1,0 +1,33 @@
+services:
+  smseagle-adapter:
+    build: .
+    # or: image: your-registry/smseagle-alertmanager-adapter:0.1.0
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # --- SMSEagle device ---
+      SMSEAGLE_URL: "https://192.168.1.101"
+      SMSEAGLE_TOKEN: "REPLACE_WITH_APIv2_ACCESS_TOKEN"
+      # On-prem devices often have a self-signed cert. Set to false ONLY in a
+      # trusted network; ideally load your own CA and keep this true.
+      SMSEAGLE_VERIFY_TLS: "true"
+
+      # --- Webhook protection (bearer) ---
+      ADAPTER_WEBHOOK_TOKEN: "REPLACE_WITH_LONG_RANDOM_SECRET"
+
+      # --- Recipient routing (phone number or Phonebook group name) ---
+      SMSEAGLE_DEFAULT_RECIPIENTS: "noc-group"
+      SMSEAGLE_ROUTES: "critical=+48600100200,oncall-group;warning=noc-group"
+
+      # --- Formatting ---
+      MESSAGE_MODE: "one_per_alert"   # or "summary"
+      MAX_INDIVIDUAL_ALERTS: "5"
+      MAX_SMS_LENGTH: "320"
+      INCLUDE_URL: "false"
+
+      # --- Voice (TTS) escalation for critical alerts (requires a voice modem) ---
+      ESCALATE_CALL_SEVERITIES: "critical"
+      TTS_CALL_DURATION: "20"
+    # If you run this next to Alertmanager in the same compose network,
+    # Alertmanager calls: http://smseagle-adapter:8080/alert
