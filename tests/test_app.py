@@ -80,6 +80,14 @@ def test_alert_sends_sms_and_returns_counts(client):
     assert recipients == ["+48600100200", "oncall-group"]
     assert text.startswith("[FIRING]")
 
+    # voice escalation: recipients/text/duration/voice_id passed through
+    tts_args, _ = client.send_tts.await_args
+    tts_recipients, tts_text, duration, voice_id = tts_args
+    assert tts_recipients == ["+48600100200", "oncall-group"]
+    assert tts_text == text
+    assert duration == app_module.settings.tts_call_duration
+    assert voice_id == app_module.settings.tts_voice_id
+
 
 def test_warning_alert_does_not_call(client):
     payload = make_payload(
@@ -153,3 +161,37 @@ def test_partial_failure_still_200(client, monkeypatch):
     body = resp.json()
     assert body["sent_sms"] == 1
     assert body["errors"]
+
+
+# --------------------------------------------------------------------------- #
+# SMSEagleClient: real HTTP payload for the TTS Advanced call                  #
+# --------------------------------------------------------------------------- #
+def test_send_tts_call_posts_to_tts_advanced_with_voice_id():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["url"] = str(request.url)
+        captured["body"] = request.content
+        return httpx.Response(200, json={"status": "queued"})
+
+    real_client = app_module.SMSEagleClient(
+        base_url="https://dev", token="tok", verify_tls=True, timeout=5
+    )
+    real_client._client._transport = httpx.MockTransport(handler)
+
+    import asyncio
+
+    asyncio.run(
+        real_client.send_tts_call(["+48600100200"], "hello", 20, 3)
+    )
+
+    assert captured["url"] == "https://dev/api/v2/calls/tts_advanced"
+    import json as _json
+
+    sent = _json.loads(captured["body"])
+    assert sent == {
+        "to": ["+48600100200"],
+        "text": "hello",
+        "duration": 20,
+        "voice_id": 3,
+    }

@@ -101,6 +101,9 @@ class Settings:
             if s.strip()
         }
         self.tts_call_duration: int = int(os.getenv("TTS_CALL_DURATION", "20"))
+        # Voice model ID for the TTS Advanced call (see the SMSEagle Web-GUI
+        # for the IDs available on your device, e.g. 1 = English).
+        self.tts_voice_id: int = int(os.getenv("TTS_VOICE_ID", "2"))
 
     def recipients_for(self, severity: str) -> list[str]:
         """Returns the recipient list for the given severity (with default fallback)."""

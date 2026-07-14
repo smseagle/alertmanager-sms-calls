@@ -22,7 +22,7 @@ Full routing and formatting: per-severity recipients, firing/resolved messages, 
 
 ### 1. Generate the API v2 token in the SMSEagle Web-GUI: Users -> new user (User level)
 -> Access to API -> APIv2 -> Generate new token, with the `Send SMS` permission
-(and `Send TTS` if you use voice escalation).
+(and `Make a TTS Advanced call`, under Modem permissions, if you use voice escalation).
 
 ### 2. Fill in docker-compose.yml (SMSEAGLE_URL, SMSEAGLE_TOKEN, tokens, routing)
 
@@ -39,7 +39,9 @@ Full routing and formatting: per-severity recipients, firing/resolved messages, 
 | `SMSEAGLE_ROUTES`            | `critical=+48...,oncall-group;warning=noc-group`            |
 | `MESSAGE_MODE`               | `one_per_alert` or `summary`                                |
 | `MAX_INDIVIDUAL_ALERTS`      | threshold for switching to a single summary SMS             |
-| `ESCALATE_CALL_SEVERITIES`   | severities that additionally trigger a TTS call             |
+| `ESCALATE_CALL_SEVERITIES`   | severities that additionally trigger a TTS Advanced call     |
+| `TTS_CALL_DURATION`          | call duration in seconds (default `20`)                     |
+| `TTS_VOICE_ID`               | voice model ID for the TTS Advanced call (default `2`, see Web-GUI for IDs available on your device) |
 
 
 ### 3. Run
@@ -119,15 +121,19 @@ and the `smseagle_to` label interact.
 | Alertmanager            | SMSEagle / effect                                   |
 |-------------------------|-----------------------------------------------------|
 | `status`                | `[FIRING]` / `[RESOLVED]` prefix                    |
-| `labels.severity`       | recipient routing + optional voice escalation (TTS) |
+| `labels.severity`       | recipient routing + optional voice escalation (TTS Advanced) |
 | `labels.alertname`      | SMS body header                                     |
 | `labels.instance`/`job` | context (where the alert comes from)                |
 | `annotations.summary`   | main body (fallback: `description`, `alertname`)    |
 | `generatorURL`          | optional link (`INCLUDE_URL=true`)                  |
 | `labels.smseagle_to`    | recipient override (number/group), takes priority   |
 
-Body sent to SMSEagle: `{"to": [...], "text": "..."}` with an `access-token` header.
+SMS body sent to SMSEagle: `POST /api/v2/messages/sms` with
+`{"to": [...], "text": "..."}` and an `access-token` header.
 A recipient can be a phone number (`+48...`) or a Phonebook group name.
+
+Voice escalation body: `POST /api/v2/calls/tts_advanced` with
+`{"to": [...], "text": "...", "duration": <TTS_CALL_DURATION>, "voice_id": <TTS_VOICE_ID>}`.
 
 ## Project layout
 
