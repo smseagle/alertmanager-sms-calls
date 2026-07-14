@@ -14,6 +14,12 @@ SMSEagle API v2 (confirmed):
     body:     {"to": ["+48123456789"], "text": "..."}
     The "to" field may be a phone number OR a Phonebook group name.
 
+    POST https://<smseagle-ip>/api/v2/calls/tts_advanced
+    headers:  access-token: <token>,  Content-Type: application/json
+    body:     {"to": [...], "text": "...", "duration": 20, "voice_id": 1}
+    Multi-language TTS Advanced call; voice_id selects the voice model
+    configured on the device (see TTS_VOICE_ID in config.py).
+
 The adapter is stateless. All configuration is via environment variables (see config.py).
 """
 
@@ -81,14 +87,20 @@ class SMSEagleClient:
         return _safe_json(resp)
 
     async def send_tts_call(
-        self, recipients: list[str], text: str, duration: int
+        self, recipients: list[str], text: str, duration: int, voice_id: int
     ) -> dict[str, Any]:
         """Text-to-speech voice call - escalation for critical alerts.
 
-        Requires a device with a voice modem. Endpoint: /api/v2/calls/tts
+        Requires a device with a voice modem. Endpoint: /api/v2/calls/tts_advanced
+        (multi-language TTS Advanced; requires a voice_id, unlike plain /calls/tts).
         """
-        url = f"{self._base_url}/api/v2/calls/tts"
-        payload = {"to": recipients, "text": text, "duration": duration}
+        url = f"{self._base_url}/api/v2/calls/tts_advanced"
+        payload = {
+            "to": recipients,
+            "text": text,
+            "duration": duration,
+            "voice_id": voice_id,
+        }
         resp = await self._client.post(url, json=payload)
         resp.raise_for_status()
         return _safe_json(resp)
@@ -176,7 +188,10 @@ async def receive_alert(
         if msg.escalate_call:
             try:
                 await client.send_tts_call(
-                    msg.recipients, msg.text, settings.tts_call_duration
+                    msg.recipients,
+                    msg.text,
+                    settings.tts_call_duration,
+                    settings.tts_voice_id,
                 )
                 sent_calls += 1
                 log.info("TTS call -> %s", msg.recipients)

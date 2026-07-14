@@ -28,8 +28,9 @@ services:
       MAX_SMS_LENGTH: "320"
       INCLUDE_URL: "false"
 
-      # --- Voice (TTS) escalation for critical alerts (requires a voice modem) ---
+      # --- Voice (TTS Advanced) escalation for critical alerts (requires a voice modem) ---
       ESCALATE_CALL_SEVERITIES: "critical"
       TTS_CALL_DURATION: "20"
+      TTS_VOICE_ID: "1"
     # If you run this next to Alertmanager in the same compose network,
     # Alertmanager calls: http://smseagle-adapter:8080/alert
