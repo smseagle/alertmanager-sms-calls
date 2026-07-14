@@ -74,6 +74,40 @@ A recipient is a phone number (+48…) or a Phonebook group name. You can route 
 By severity — map the alert severity label to recipients in the adapter (SMSEAGLE_ROUTES).
 Per alert — add a smseagle_to label in the Prometheus rule to override the recipient; it takes priority over severity routing.
 
+## Configuring Alertmanager
+
+The adapter is a plain `webhook_config` receiver, so pointing Alertmanager at
+it only takes a `receivers` entry and (optionally) a `route` to select which
+alerts go there. [`examples/alertmanager-example.yml`](examples/alertmanager-example.yml)
+is a ready-to-adapt fragment - merge it into your existing `alertmanager.yml`:
+
+1. Copy the `receivers` entry and, if needed, the `route`/`routes` block from
+   the example into your `alertmanager.yml`.
+2. Set `url` to wherever the adapter is reachable from Alertmanager, e.g.
+   `http://smseagle-adapter:8080/alert` when both run in the same Docker
+   Compose network, or a full `https://` URL if it's reachable over the
+   network.
+3. Replace `http_config.authorization.credentials` with the same value as
+   the adapter's `ADAPTER_WEBHOOK_TOKEN` - Alertmanager sends it as
+   `Authorization: Bearer <token>`, which `/alert` requires.
+4. Keep `send_resolved: true` if you also want `[RESOLVED]` notifications,
+   and `max_alerts: 0` so Alertmanager doesn't truncate large alert groups
+   before they reach the adapter (the adapter's own `MESSAGE_MODE=summary` /
+   `MAX_INDIVIDUAL_ALERTS` handle alert storms instead).
+5. Use `matchers`/`routes` to send only specific alerts to the `smseagle`
+   receiver (e.g. by `severity`), or route by severity entirely inside the
+   adapter via `SMSEAGLE_ROUTES` instead - both are shown in the example.
+6. Validate the config and reload Alertmanager:
+   ```bash
+   amtool check-config alertmanager.yml
+   # then reload/restart Alertmanager, or send SIGHUP / POST /-/reload
+   ```
+7. Confirm delivery: check the adapter logs for `SMS -> ...` / `TTS call -> ...`
+   lines, and Alertmanager's `Status` page for the receiver's last notify
+   attempt.
+
+See [Recipient routing](#recipient-routing) above for how `SMSEAGLE_ROUTES`
+and the `smseagle_to` label interact.
 
 ## Endpoints
 - `POST /alert` - webhook from Alertmanager
