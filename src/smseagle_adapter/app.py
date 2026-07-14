@@ -19,6 +19,7 @@ The adapter is stateless. All configuration is via environment variables (see co
 
 from __future__ import annotations
 
+import hmac
 import logging
 from contextlib import asynccontextmanager
 from typing import Any
@@ -197,13 +198,14 @@ def _authenticate(authorization: str | None) -> None:
     """Simple inbound bearer so the webhook is not open to the world.
 
     In alertmanager.yml: http_config.authorization.credentials = <ADAPTER_WEBHOOK_TOKEN>
-    If ADAPTER_WEBHOOK_TOKEN is not set, authentication is disabled
-    (use only in an isolated network).
+    Settings() refuses to start unless a real ADAPTER_WEBHOOK_TOKEN is
+    configured (or ALLOW_UNAUTHENTICATED_WEBHOOK=true was set explicitly), so
+    an empty webhook_token here only happens in that deliberate opt-out case.
     """
     if not settings.webhook_token:
         return
     expected = f"Bearer {settings.webhook_token}"
-    if authorization != expected:
+    if not hmac.compare_digest(authorization or "", expected):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or invalid webhook token.",

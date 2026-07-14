@@ -31,6 +31,7 @@ os.environ.setdefault("MAX_INDIVIDUAL_ALERTS", "5")
 _BASE_ENV = {
     "SMSEAGLE_URL": "https://dev",
     "SMSEAGLE_TOKEN": "t",
+    "ADAPTER_WEBHOOK_TOKEN": "secret123",
     "SMSEAGLE_DEFAULT_RECIPIENTS": "noc-group",
     "SMSEAGLE_ROUTES": "critical=+48600100200,oncall-group;warning=noc-group",
     "ESCALATE_CALL_SEVERITIES": "critical",
@@ -45,6 +46,7 @@ _OPTIONAL = [
     "MAX_SMS_LENGTH",
     "SMSEAGLE_RECIPIENT_LABEL",
     "ADAPTER_WEBHOOK_TOKEN",
+    "ALLOW_UNAUTHENTICATED_WEBHOOK",
     "SMSEAGLE_VERIFY_TLS",
     "TTS_CALL_DURATION",
 ]
