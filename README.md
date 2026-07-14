@@ -41,7 +41,7 @@ Full routing and formatting: per-severity recipients, firing/resolved messages, 
 | `MAX_INDIVIDUAL_ALERTS`      | threshold for switching to a single summary SMS             |
 | `ESCALATE_CALL_SEVERITIES`   | severities that additionally trigger a TTS Advanced call     |
 | `TTS_CALL_DURATION`          | call duration in seconds (default `20`)                     |
-| `TTS_VOICE_ID`               | voice model ID for the TTS Advanced call (default `1`, see Web-GUI for IDs available on your device) |
+| `TTS_VOICE_ID`               | voice model ID for the TTS Advanced call (default `2`, see Web-GUI for IDs available on your device) |
 
 
 ### 3. Run
