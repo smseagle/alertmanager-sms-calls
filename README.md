@@ -18,15 +18,15 @@ API v2 schema. Alertmanager has no native SMS channel - the canonical pattern is
 ## Features
 Full routing and formatting: per-severity recipients, firing/resolved messages, a single summary SMS during alert storms, and optional voice escalation for critical alerts. Best for any Prometheus/Alertmanager stack, including Kubernetes.
 
-## Running
+## Quick start
 
-# 1. Generate the API v2 token in the SMSEagle Web-GUI: Users -> new user (User level)
+### 1. Generate the API v2 token in the SMSEagle Web-GUI: Users -> new user (User level)
 -> Access to API -> APIv2 -> Generate new token, with the `Send SMS` permission
 (and `Send TTS` if you use voice escalation).
 
-# 2. Fill in docker-compose.yml (SMSEAGLE_URL, SMSEAGLE_TOKEN, tokens, routing)
+### 2. Fill in docker-compose.yml (SMSEAGLE_URL, SMSEAGLE_TOKEN, tokens, routing)
 
-## Key environment variables (configured in docker-compose.yml)
+### Key environment variables (configured in docker-compose.yml)
 
 | Variable                     | Description                                                 |
 |------------------------------|-------------------------------------------------------------|
@@ -42,7 +42,7 @@ Full routing and formatting: per-severity recipients, firing/resolved messages, 
 | `ESCALATE_CALL_SEVERITIES`   | severities that additionally trigger a TTS call             |
 
 
-# 3. Run
+### 3. Run
 
 ```bash
 docker compose up -d --build
