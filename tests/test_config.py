@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from smseagle_adapter import config
 
 
@@ -74,3 +76,21 @@ def test_verify_tls_default_true(make_settings):
 def test_message_mode_default(make_settings):
     s = make_settings()
     assert s.message_mode == "one_per_alert"
+
+
+# --------------------------------------------------------------------------- #
+# Webhook token: fail-closed by default (CWE-306 hardening)                   #
+# --------------------------------------------------------------------------- #
+def test_missing_webhook_token_raises(make_settings):
+    with pytest.raises(RuntimeError, match="ADAPTER_WEBHOOK_TOKEN is not set"):
+        make_settings(ADAPTER_WEBHOOK_TOKEN="")
+
+
+def test_placeholder_webhook_token_raises(make_settings):
+    with pytest.raises(RuntimeError, match="placeholder value"):
+        make_settings(ADAPTER_WEBHOOK_TOKEN="REPLACE_WITH_LONG_RANDOM_SECRET")
+
+
+def test_missing_webhook_token_allowed_with_explicit_opt_out(make_settings):
+    s = make_settings(ADAPTER_WEBHOOK_TOKEN="", ALLOW_UNAUTHENTICATED_WEBHOOK="true")
+    assert s.webhook_token == ""

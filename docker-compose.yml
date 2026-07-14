@@ -14,6 +14,8 @@ services:
       SMSEAGLE_VERIFY_TLS: "true"
 
       # --- Webhook protection (bearer) ---
+      # Required: the adapter refuses to start with this placeholder, or with
+      # no token at all. Generate one with: openssl rand -hex 32
       ADAPTER_WEBHOOK_TOKEN: "REPLACE_WITH_LONG_RANDOM_SECRET"
 
       # --- Recipient routing (phone number or Phonebook group name) ---

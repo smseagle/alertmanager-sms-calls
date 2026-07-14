@@ -14,6 +14,11 @@ from __future__ import annotations
 
 import os
 
+# Placeholder secrets shipped in docker-compose.yml / examples. If one of these
+# is still in place at startup, the operator forgot to replace it - treat it as
+# "no secret configured" rather than a valid token.
+_PLACEHOLDER_WEBHOOK_TOKENS = {"REPLACE_WITH_LONG_RANDOM_SECRET"}
+
 
 def _split_recipients(raw: str) -> list[str]:
     return [r.strip() for r in raw.split(",") if r.strip()]
@@ -47,6 +52,23 @@ class Settings:
 
         # --- Inbound security (webhook from Alertmanager) ---
         self.webhook_token: str = os.getenv("ADAPTER_WEBHOOK_TOKEN", "")
+        allow_unauthenticated = _env_bool("ALLOW_UNAUTHENTICATED_WEBHOOK", False)
+
+        if self.webhook_token in _PLACEHOLDER_WEBHOOK_TOKENS:
+            raise RuntimeError(
+                "ADAPTER_WEBHOOK_TOKEN is still set to the placeholder value "
+                "from docker-compose.yml. Generate a real secret (e.g. "
+                "`openssl rand -hex 32`) and set it before starting the adapter."
+            )
+        if not self.webhook_token and not allow_unauthenticated:
+            raise RuntimeError(
+                "ADAPTER_WEBHOOK_TOKEN is not set, so /alert would accept "
+                "unauthenticated requests from anyone who can reach it. Set "
+                "ADAPTER_WEBHOOK_TOKEN to a long random secret, or set "
+                "ALLOW_UNAUTHENTICATED_WEBHOOK=true if you have verified the "
+                "adapter is reachable only from a fully trusted, isolated "
+                "network."
+            )
 
         # --- Recipient routing ---
         # Default recipient when severity matches no route.

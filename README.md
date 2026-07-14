@@ -33,7 +33,8 @@ Full routing and formatting: per-severity recipients, firing/resolved messages, 
 | `SMSEAGLE_URL`               | device address, e.g. `https://192.168.1.101`                |
 | `SMSEAGLE_TOKEN`             | API v2 token                                                |
 | `SMSEAGLE_VERIFY_TLS`        | `true`/`false` (self-signed cert on on-prem devices)        |
-| `ADAPTER_WEBHOOK_TOKEN`      | bearer protecting the adapter's inbound endpoint            |
+| `ADAPTER_WEBHOOK_TOKEN`      | bearer protecting the adapter's inbound endpoint (required)  |
+| `ALLOW_UNAUTHENTICATED_WEBHOOK` | `true` to explicitly opt out of `ADAPTER_WEBHOOK_TOKEN` (isolated networks only) |
 | `SMSEAGLE_DEFAULT_RECIPIENTS`| default recipient (number/group, comma-separated list)      |
 | `SMSEAGLE_ROUTES`            | `critical=+48...,oncall-group;warning=noc-group`            |
 | `MESSAGE_MODE`               | `one_per_alert` or `summary`                                |
@@ -56,8 +57,16 @@ To run locally without Docker:
 ```bash
 pip install -r requirements.txt
 SMSEAGLE_URL=https://192.168.1.101 SMSEAGLE_TOKEN=... \
+  ADAPTER_WEBHOOK_TOKEN=$(openssl rand -hex 32) \
   uvicorn smseagle_adapter.app:app --app-dir src --host 0.0.0.0 --port 8080
 ```
+
+`ADAPTER_WEBHOOK_TOKEN` is required - the adapter refuses to start without it
+(or with the `docker-compose.yml` placeholder value), since `/alert` would
+otherwise accept unauthenticated requests from anyone who can reach the port.
+If you are intentionally binding to `127.0.0.1` only, or the port is only
+reachable from a fully trusted, isolated network, you can opt out explicitly
+with `ALLOW_UNAUTHENTICATED_WEBHOOK=true` instead.
 
 ## Recipient routing
 A recipient is a phone number (+48…) or a Phonebook group name. You can route in two ways:
